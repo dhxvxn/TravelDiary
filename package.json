@@ -1,0 +1,21 @@
+{
+  "name": "travel-diary",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "scripts": {
+    "dev": "npm run dev -w @traveldiary/web",
+    "build": "npm run build -w @traveldiary/web",
+    "preview": "npm run build && npm run preview -w @traveldiary/web",
+    "test": "npm test --workspaces --if-present",
+    "typecheck": "npm run typecheck --workspaces --if-present"
+  },
+  "devDependencies": {
+    "typescript": "^7.0.2",
+    "vitest": "^5.0.3"
+  }
+}

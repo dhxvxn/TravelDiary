@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import { CircleMarker, MapContainer, Polyline, TileLayer, Tooltip, useMap } from 'react-leaflet';
 import { latLngBounds } from 'leaflet';
 import type { Geocoder, LatLon, Trip } from '@traveldiary/core';
-import { formatDateRange, placeName, TRIP_COLORS } from '../format';
+import { formatDateRange, placeName, tripColor } from '../format';
 
 interface Props {
   home: LatLon | null;
@@ -36,7 +36,7 @@ export function TravelMap({ home, trips, selectedTripId, onSelectTrip, geocoder 
       />
       <FitBounds points={focus} />
       {trips.map((trip) => {
-        const color = TRIP_COLORS[Number(trip.id.slice(1)) % TRIP_COLORS.length];
+        const color = tripColor(trip);
         const dim = selected && selected !== trip;
         return (
           <div key={trip.id}>

@@ -14,6 +14,18 @@ Photos never leave your device; your browser reads them directly. The only netwo
   [Nominatim](https://nominatim.org/) to turn them into "Lisbon, Portugal". You can switch this off
   in Settings. Results are cached in your browser so re-scanning is instant.
 
+## Google Maps
+
+- **Open in Google Maps**: every trip has a link that opens its route through all its stops, and
+  every stop has a link to its location. Both work in the browser or the Google Maps app, with
+  no API key. Google route links allow at most 9 stops in between, so longer trips are thinned out
+  evenly (start and end are always kept). Google may show no driving route across the sea
+  (e.g. London → Rome), but the stops are still plotted.
+- **Export for Google My Maps**: downloads a `.kml` file with your home, every stop, and each trip's
+  route, one folder per trip, coloured the same as in the app. To keep it in your Google account:
+  [mymaps.google.com](https://mymaps.google.com) → **Create a new map** → **Import** → choose the
+  file. It also opens in Google Earth.
+
 ## Getting your photos with location intact
 
 Many sharing paths strip GPS data. These keep it:
@@ -58,6 +70,8 @@ packages/core   @traveldiary/core: platform-independent logic (no DOM, no Node A
   geo.ts          distances, centroids, coordinate validation
   trips.ts        home detection, trip & stop clustering
   geocode.ts      Nominatim reverse geocoder with throttling + pluggable cache store
+  describe.ts     trip titles ("🇫🇷 Paris → Lyon"), place names, trip colours
+  googleMaps.ts   Google Maps place/route links and KML export
 apps/web        Vite + React app
   scan.ts         reads EXIF (exifr) from File objects, 8 at a time; HEIC thumbnails via embedded preview
   App.tsx         pick → scan → log

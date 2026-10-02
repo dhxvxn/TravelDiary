@@ -1,6 +1,6 @@
 import type { CSSProperties } from 'react';
-import { flagEmoji, type Geocoder, type LatLon, type Place, type Trip } from '@traveldiary/core';
-import { formatDateRange, formatKm, placeName, tripTitle, TRIP_COLORS } from '../format';
+import { flagEmoji, googleMapsPlaceUrl, googleMapsRouteUrl, type Geocoder, type LatLon, type Place, type Trip } from '@traveldiary/core';
+import { formatDateRange, formatKm, placeName, tripColor, tripTitle } from '../format';
 import type { Photo } from '../scan';
 import { Thumb } from '../Thumb';
 
@@ -19,17 +19,20 @@ interface Props {
 }
 
 export function TripCard({ trip, geocoder, selected, onSelect, onSetHome }: Props) {
-  const color = TRIP_COLORS[Number(trip.id.slice(1)) % TRIP_COLORS.length];
+  const color = tripColor(trip);
   return (
     <article className={`trip${selected ? ' selected' : ''}`} style={{ '--trip-color': color } as CSSProperties}>
       <button className="trip-header" onClick={onSelect} aria-expanded={selected}>
-        <span className="trip-title">{tripTitle(trip, geocoder)}</span>
+        <span className="trip-title">{tripTitle(trip, (p) => geocoder.cached(p))}</span>
         <span className="trip-meta">
           {formatDateRange(trip.start, trip.end)} · {trip.days} {trip.days === 1 ? 'day' : 'days'} ·{' '}
           {trip.stops.length} {trip.stops.length === 1 ? 'stop' : 'stops'} · {trip.photoCount} photos
           {trip.distanceKm >= 1 && <> · {formatKm(trip.distanceKm)}</>}
         </span>
       </button>
+      <a className="gmaps trip-gmaps" href={googleMapsRouteUrl(trip.stops)} target="_blank" rel="noopener noreferrer">
+        {trip.stops.length > 1 ? 'Open route in Google Maps' : 'Open in Google Maps'} ↗
+      </a>
 
       {selected && (
         <ol className="stops">
@@ -47,9 +50,14 @@ export function TripCard({ trip, geocoder, selected, onSelect, onSetHome }: Prop
                       {formatDateRange(stop.arrivedAt, stop.leftAt)} · {stop.photos.length} photos
                     </div>
                   </div>
-                  <button className="link" onClick={() => onSetHome(stop)} title="Use this place as home">
-                    Set as home
-                  </button>
+                  <div className="stop-actions">
+                    <a className="gmaps" href={googleMapsPlaceUrl(stop)} target="_blank" rel="noopener noreferrer">
+                      Google Maps ↗
+                    </a>
+                    <button className="link" onClick={() => onSetHome(stop)} title="Use this place as home">
+                      Set as home
+                    </button>
+                  </div>
                 </div>
                 <div className="thumbs">
                   {stop.photos.slice(0, MAX_THUMBS).map((p) => (

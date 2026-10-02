@@ -6,7 +6,7 @@ import { TravelMap } from './components/TravelMap';
 import { TripCard } from './components/TripCard';
 import { Settings } from './components/Settings';
 import { formatKm, placeName } from './format';
-import { exportJson } from './exportJson';
+import { exportJson, exportKml } from './export';
 
 const geocoder = new Geocoder({
   store: {
@@ -107,6 +107,9 @@ export function App() {
         </h1>
         {phase.name === 'log' && (
           <div className="topbar-actions">
+            <button onClick={() => log && exportKml(log, geocoder)} title="Download a KML file to import into Google My Maps or Google Earth">
+              Export for Google My Maps
+            </button>
             <button onClick={() => log && exportJson(log, geocoder)}>Export JSON</button>
             <button onClick={() => setPhase({ name: 'pick' })}>Scan other photos</button>
           </div>

@@ -5,6 +5,7 @@ import { PickScreen } from './components/PickScreen';
 import { TravelMap } from './components/TravelMap';
 import { TripCard } from './components/TripCard';
 import { Settings } from './components/Settings';
+import { LocationCheck } from './components/LocationCheck';
 import { formatKm, placeName } from './format';
 import { exportJson, exportKml } from './export';
 
@@ -144,6 +145,10 @@ export function App() {
               {phase.scan.noDate > 0 && ` ${phase.scan.noDate.toLocaleString()} had no date.`}
               {phase.scan.failed > 0 && ` ${phase.scan.failed.toLocaleString()} couldn’t be read.`}
             </p>
+            <LocationCheck
+              folders={phase.scan.folders}
+              openByDefault={trips.length === 0 || phase.scan.photos.length < phase.scan.folders.reduce((n, f) => n + f.total, 0) / 2}
+            />
             <Settings
               options={options}
               onChange={setOptions}

@@ -1,5 +1,6 @@
 import exifr from 'exifr';
 import { isValidCoord, type GeoPhoto } from '@traveldiary/core';
+import { folderOf, summarizeFolders, type FolderStat, type Outcome } from './folders';
 
 export interface Photo extends GeoPhoto {
   file: File;
@@ -14,7 +15,17 @@ export interface ScanResult {
   noDate: number;
   /** Files that couldn't be parsed at all. */
   failed: number;
+  /** How many images in each folder had a location, to show where location data is missing. */
+  folders: FolderStat[];
 }
+
+/**
+ * Paths of drag-and-dropped files. Files dropped from a folder carry no `webkitRelativePath`, so the
+ * drop handler records each one's path here.
+ */
+export const dropPaths = new WeakMap<File, string>();
+
+const pathOf = (file: File) => dropPaths.get(file) ?? file.webkitRelativePath ?? '';
 
 const IMAGE_EXT = /\.(jpe?g|heic|heif|png|tiff?|webp|dng|avif)$/i;
 
@@ -58,14 +69,17 @@ export async function scanFiles(
   concurrency = 8,
 ): Promise<ScanResult> {
   const images = files.filter(isImageFile);
-  const result: ScanResult = { photos: [], noLocation: 0, noDate: 0, failed: 0 };
+  const result: ScanResult = { photos: [], noLocation: 0, noDate: 0, failed: 0, folders: [] };
+  const outcomes: { folder: string; outcome: Outcome }[] = [];
   const seen = new Set<string>();
   let next = 0;
   let done = 0;
 
   const worker = async () => {
     while (next < images.length) {
-      const r = await readPhoto(images[next++]);
+      const file = images[next++];
+      const r = await readPhoto(file);
+      outcomes.push({ folder: folderOf(pathOf(file)), outcome: typeof r === 'string' ? r : 'located' });
       if (typeof r === 'string') result[r]++;
       else if (!seen.has(r.id)) {
         seen.add(r.id);
@@ -75,6 +89,7 @@ export async function scanFiles(
     }
   };
   await Promise.all(Array.from({ length: Math.min(concurrency, images.length) }, worker));
+  result.folders = summarizeFolders(outcomes);
   return result;
 }
 

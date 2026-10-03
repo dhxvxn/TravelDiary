@@ -1,10 +1,13 @@
 import { useRef, useState, type DragEvent } from 'react';
+import { dropPaths } from '../scan';
 
 async function filesFromDrop(e: DragEvent): Promise<File[]> {
   const out: File[] = [];
   const walk = async (entry: FileSystemEntry): Promise<void> => {
     if (entry.isFile) {
-      out.push(await new Promise<File>((res, rej) => (entry as FileSystemFileEntry).file(res, rej)));
+      const file = await new Promise<File>((res, rej) => (entry as FileSystemFileEntry).file(res, rej));
+      dropPaths.set(file, entry.fullPath);
+      out.push(file);
     } else if (entry.isDirectory) {
       const reader = (entry as FileSystemDirectoryEntry).createReader();
       // readEntries returns results in batches; keep reading until it comes back empty.

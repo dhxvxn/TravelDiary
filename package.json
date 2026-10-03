@@ -12,10 +12,15 @@
     "build": "npm run build -w @traveldiary/web",
     "preview": "npm run build && npm run preview -w @traveldiary/web",
     "test": "npm test --workspaces --if-present",
-    "typecheck": "npm run typecheck --workspaces --if-present"
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "mobile": "npm run start -w @traveldiary/mobile"
   },
   "devDependencies": {
     "typescript": "^7.0.2",
     "vitest": "^5.0.3"
+  },
+  "overrides": {
+    "react": "19.2.3",
+    "react-dom": "19.2.3"
   }
 }

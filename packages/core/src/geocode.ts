@@ -1,4 +1,5 @@
 import type { LatLon } from './geo';
+import { query } from './query';
 
 export interface Place {
   /** Most specific useful name: city, town, village, or failing that the region. */
@@ -22,9 +23,14 @@ export interface GeocoderOptions {
   minIntervalMs?: number;
   endpoint?: string;
   fetchFn?: FetchLike;
+  /** Extra request headers. Apps should send a User-Agent identifying themselves, per Nominatim's policy. */
+  headers?: Record<string, string>;
 }
 
-export type FetchLike = (url: string) => Promise<{ ok: boolean; json(): Promise<unknown> }>;
+export type FetchLike = (
+  url: string,
+  init?: { headers?: Record<string, string> },
+) => Promise<{ ok: boolean; json(): Promise<unknown> }>;
 
 const CACHE_KEY = 'traveldiary.geocode.v1';
 
@@ -59,7 +65,8 @@ export class Geocoder {
       language: 'en',
       minIntervalMs: 1100,
       endpoint: 'https://nominatim.openstreetmap.org/reverse',
-      fetchFn: (url) => fetch(url),
+      fetchFn: (url, init) => fetch(url, init),
+      headers: {},
       ...options,
     };
     this.loaded = this.load();
@@ -117,14 +124,14 @@ export class Geocoder {
     if (wait > 0) await new Promise((r) => setTimeout(r, wait));
     this.lastRequest = Date.now();
 
-    const params = new URLSearchParams({
+    const params = query({
       format: 'jsonv2',
       lat: String(point.lat),
       lon: String(point.lon),
       zoom: '10',
       'accept-language': this.opts.language,
     });
-    const res = await this.opts.fetchFn(`${this.opts.endpoint}?${params}`);
+    const res = await this.opts.fetchFn(`${this.opts.endpoint}?${params}`, { headers: this.opts.headers });
     if (!res.ok) return null;
     return parseNominatim(await res.json());
   }

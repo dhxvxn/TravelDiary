@@ -39,6 +39,14 @@ describe('geocode', () => {
     expect(fetchFn).toHaveBeenCalledTimes(1);
   });
 
+  it('sends custom headers', async () => {
+    const fetchFn = vi.fn(async (_url: string, _init?: { headers?: Record<string, string> }) => new Response(JSON.stringify(nominatimLisbon)));
+    const g = new Geocoder({ fetchFn, minIntervalMs: 0, headers: { 'User-Agent': 'TravelDiary-test' } });
+    await g.lookup(LISBON);
+    expect(fetchFn.mock.calls[0][1]?.headers).toEqual({ 'User-Agent': 'TravelDiary-test' });
+    expect(fetchFn.mock.calls[0][0]).toMatch(/lat=38\.7223&lon=-9\.1393/);
+  });
+
   it('returns null on network failure', async () => {
     const g = new Geocoder({ fetchFn: async () => Promise.reject(new Error('offline')), minIntervalMs: 0 });
     expect(await g.lookup(LISBON)).toBeNull();

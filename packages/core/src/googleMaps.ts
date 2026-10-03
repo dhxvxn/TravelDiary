@@ -1,4 +1,5 @@
 import type { LatLon } from './geo';
+import { query } from './query';
 import { placeName, tripColor, tripTitle, type PlaceOf } from './describe';
 import type { GeoPhoto, TravelLog, Trip } from './trips';
 
@@ -28,8 +29,12 @@ export function googleMapsRouteUrl(points: LatLon[]): string {
   const origin = points[0];
   const destination = points[points.length - 1];
   const waypoints = sample(points.slice(1, -1), MAX_ROUTE_WAYPOINTS);
-  const params = new URLSearchParams({ api: '1', origin: coord(origin), destination: coord(destination) });
-  if (waypoints.length > 0) params.set('waypoints', waypoints.map(coord).join('|'));
+  const params = query({
+    api: '1',
+    origin: coord(origin),
+    destination: coord(destination),
+    waypoints: waypoints.length > 0 ? waypoints.map(coord).join('|') : undefined,
+  });
   return `https://www.google.com/maps/dir/?${params}`;
 }
 

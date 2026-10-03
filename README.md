@@ -66,7 +66,7 @@ npm run build      # static site in apps/web/dist, can be hosted anywhere
 ## Project layout
 
 ```
-packages/core   @traveldiary/core: platform-independent logic (no DOM, no Node APIs)
+packages/core   @traveldiary/core: platform-independent logic, shared by web and mobile
   geo.ts          distances, centroids, coordinate validation
   trips.ts        home detection, trip & stop clustering
   geocode.ts      Nominatim reverse geocoder with throttling + pluggable cache store
@@ -76,14 +76,37 @@ apps/web        Vite + React app
   scan.ts         reads EXIF (exifr) from File objects, 8 at a time; HEIC thumbnails via embedded preview
   App.tsx         pick → scan → log
   components/     map (Leaflet), trip cards, settings, picker
+apps/mobile     Expo app (Android)
+  src/gallery.ts  pages the media library, reads photo locations, incremental scan cache
+  src/leafletHtml.ts  the map, a Leaflet page in a WebView
+  App.tsx         welcome → scan → log
 ```
 
-## Roadmap: native mobile app
+## Mobile app (Android)
 
-`@traveldiary/core` was kept free of browser APIs so an Expo / React Native app can reuse it as is:
+`apps/mobile` is an Expo (React Native) app that reads your phone's gallery directly, so there's
+nothing to export. It uses the same `@traveldiary/core` logic as the web app and has the same features:
+a map, trips by year, stops with thumbnails, Google Maps links, and "Export for Google My Maps" via the
+share sheet (save to Drive, then import it in My Maps).
 
-- Read the gallery with `expo-media-library` (`getAssetsAsync`, then `getAssetInfoAsync(asset).location`
-  and `creationTime`). On Android this needs the `ACCESS_MEDIA_LOCATION` permission, or locations come
-  back redacted.
-- Map each asset to `{ id, lat, lon, takenAt }` and call `buildTravelLog`.
-- Create `new Geocoder({ store: AsyncStorage })` for cached place names.
+- **First scan** lists every photo (fast), then reads each photo's location (a few minutes for a big
+  gallery). Results are cached on the phone, so **later scans only read new photos** and the log
+  opens instantly.
+- It needs the **"Allow all"** photos permission, plus access to photo locations, which Android asks
+  for in the same prompt. If you pick "Select photos", the app offers a button to allow more.
+- Expo Go **can't** read photo locations on Android, so install a real build:
+
+```bash
+cd apps/mobile
+npx eas-cli@latest login          # free Expo account
+npx eas-cli@latest build -p android --profile preview
+```
+
+EAS builds the APK in the cloud and gives you a link/QR code; open it on your phone and install it
+(allow "install unknown apps" for your browser). With Android Studio installed you can instead plug
+in your phone and run `npx expo run:android`.
+
+For development: `npm run mobile` starts Metro; use the `development` EAS profile for a dev-client build.
+
+If no photos have a location, check your camera app's "Location tags" / "Save location" setting.
+Older photos taken with it off won't have GPS data.
